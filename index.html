@@ -102,6 +102,11 @@
         .skill-desc { color: var(--text-muted); font-size: 0.86rem; }
 
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; }
+        .gallery-filters { display: flex; gap: 0.8rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
+        .filter-btn { padding: 0.5rem 1.4rem; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.02); color: var(--text-muted); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: var(--transition); }
+        .filter-btn:hover { border-color: var(--accent-light); color: var(--text-main); }
+        .filter-btn.active { background: linear-gradient(135deg, var(--accent-light), var(--accent)); border-color: transparent; color: #f5f6fc; }
+        .gallery-card.hidden { display: none; }
         .gallery-card { background-color: var(--card-bg-soft); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 16px; overflow: hidden; transition: var(--transition); display: flex; flex-direction: column; height: 100%; }
         .gallery-card:hover { transform: translateY(-8px); border-color: rgba(61, 91, 255, 0.35); box-shadow: 0 15px 30px rgba(0,0,0,0.35); }
         .gallery-image { height: 260px; background: linear-gradient(135deg, rgba(4, 32, 191, 0.35), rgba(7, 12, 115, 0.55)); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; cursor: pointer; }
@@ -220,6 +225,11 @@
 
     <section id="gallery">
         <h2 class="section-title">Galería de Trabajos</h2>
+        <div class="gallery-filters" id="galleryFilters">
+            <button class="filter-btn active" data-filter="all">Todo</button>
+            <button class="filter-btn" data-filter="2d">2D</button>
+            <button class="filter-btn" data-filter="3d">3D</button>
+        </div>
         <div class="gallery-grid" id="galleryGrid"></div>
     </section>
 
@@ -360,29 +370,34 @@
         ];
 
         const GALLERY_ITEMS = [
+            // "category" debe ser "2d" o "3d" — controla en qué pestaña aparece cada obra.
             {
                 title: "Hell Breezer",
                 description: "Portada de videojuego indié.",
                 tags: ["Digital", "Ilustración"],
-                image: "hb.png"
+                image: "hb.png",
+                category: "2d"
             },
             {
                 title: "Golem Shaders",
                 description: "Shaders para proyecto animado",
                 tags: ["Digital", "3D"],
-                image: "shaders.png"
+                image: "shaders.png",
+                category: "3d"
             },
             {
                 title: "Shoot out",
                 description: "Concepto de personajes dibujado a mano",
                 tags: ["Concept Art"],
-                image: "20260906_182226.jpg"
+                image: "20260906_182226.jpg",
+                category: "2d"
             },
             {
                 title: "Diorama Fall Guys",
                 description: "Modelado 3d para videojuegos.",
                 tags: ["3D", "Blender"],
-                image: "3d modelado.png"
+                image: "3d modelado.png",
+                category: "3d"
             }
         ];
 
@@ -496,6 +511,7 @@
         GALLERY_ITEMS.forEach(item => {
             const card = document.createElement('div');
             card.className = 'gallery-card';
+            card.dataset.category = item.category || 'otros';
 
             const imageHtml = item.image
                 ? `<img src="${item.image}" alt="${item.title}">`
@@ -518,6 +534,22 @@
             `;
             card.querySelector('.gallery-image').addEventListener('click', () => openLightbox(item));
             galleryGrid.appendChild(card);
+        });
+
+        /* ---------- Filtro de galería (Todo / 2D / 3D) ---------- */
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const galleryCards = document.querySelectorAll('.gallery-card');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.dataset.filter;
+                galleryCards.forEach(card => {
+                    const show = filter === 'all' || card.dataset.category === filter;
+                    card.classList.toggle('hidden', !show);
+                });
+                playClickSound();
+            });
         });
 
         function playClickSound() {
